@@ -14,7 +14,7 @@ Follow the steps in the [orientation slides](http://docs.pace.gatech.edu/trainin
 
 ## Step 2 (5%): Getting the code
 
-This project is hosted in a repository on <https://gitlab.gatech.edu/cse6230fa21/>.
+This project is hosted in a repository on <https://gitlab.gatech.edu/cse6230fa21/cse6230ex2>.
 
 Your team should clone the repository into a local copy that you will use to develop.
 
@@ -184,7 +184,7 @@ Make a report `report.pdf` that includes your two figures, and answers to the fo
 
 - When you are ready to submit, [transfer ownership](https://docs.github.com/en/github/administering-a-repository/managing-repository-settings/transferring-a-repository) of your repository to the group `cse6230fa21`.
 
-- On canvas, your "submission" will just be the web address of your repository.
+- On canvas, your "submission" will just be the name of your repository.
 
 - The TA will submit your `figure_one.pbs` and `figure_two.pbs` submission scripts to verify your code.
 
