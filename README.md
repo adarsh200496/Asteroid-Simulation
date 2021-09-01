@@ -14,7 +14,7 @@ Follow the steps in the [orientation slides](http://docs.pace.gatech.edu/trainin
 
 ## Step 2 (5%): Getting the code
 
-This project is hosted in a repository on <https://gitlab.gatech.edu/cse6230fa21/cse6230ex2>.
+This project is hosted in a repository on <https://github.gatech.edu/cse6230fa21/cse6230ex2>.
 
 Your team should clone the repository into a local copy that you will use to develop.
 
