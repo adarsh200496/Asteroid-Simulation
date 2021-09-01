@@ -41,29 +41,29 @@ template<typename Real>
   }
 }
 
-/// Compute the accuracy: the maximum root least squares error between the
+/// Compute the error: the maximum root least squares error between the
 // prediction and the analytically computed value
 //
 // An error that is on the order of 1 means that either the final position is
 // off by 1 AU (the distance from the Earth to the sun), the velocity is
 // off by 1 AU (about 16% the orbital velocity of the earth
 template<typename Real>
-  static double compute_accuracy(size_t n_asteroids,
-                                 Real *__restrict__ x,
-                                 Real *__restrict__ y,
-                                 Real *__restrict__ z,
-                                 Real *__restrict__ u,
-                                 Real *__restrict__ v,
-                                 Real *__restrict__ w,
-                                 double *__restrict__ x_true,
-                                 double *__restrict__ y_true,
-                                 double *__restrict__ z_true,
-                                 double *__restrict__ u_true,
-                                 double *__restrict__ v_true,
-                                 double *__restrict__ w_true)
+  static double compute_error(size_t n_asteroids,
+                              Real *__restrict__ x,
+                              Real *__restrict__ y,
+                              Real *__restrict__ z,
+                              Real *__restrict__ u,
+                              Real *__restrict__ v,
+                              Real *__restrict__ w,
+                              double *__restrict__ x_true,
+                              double *__restrict__ y_true,
+                              double *__restrict__ z_true,
+                              double *__restrict__ u_true,
+                              double *__restrict__ v_true,
+                              double *__restrict__ w_true)
 {
-  double accuracy = 0.;
-  // The accuracy is the largest square error between the computed final state
+  double error = 0.;
+  // The error is the largest square error between the computed final state
   // and the true final state
   for (size_t i = 0; i < n_asteroids; i++) {
     double err_x = (double) x[i] - x_true[i];
@@ -81,9 +81,9 @@ template<typename Real>
                     err_v*err_v +
                     err_w*err_w
                   );
-    accuracy = std::max(accuracy,diff);
+    error = std::max(error,diff);
   }
-  return accuracy;
+  return error;
 }
 
 /// Read asteroid data from file and simulate one year using classical mechanics on the state vector.
@@ -91,7 +91,7 @@ template<typename Real>
 // Time the simulation, and compare the final state vector to one derived analytically from the
 // orbital elements.
 template<typename Real>
-  static void simulate(size_t &n_asteroids, size_t n_steps, double &seconds, double &accuracy)
+  static void simulate(size_t &n_asteroids, size_t n_steps, double &seconds, double &error)
 {
   using namespace elements;
   const double mu = 39.47841760435743;; // 4 pi^2 [AU^3 / y^2], sun's gravitational constant
@@ -154,10 +154,10 @@ template<typename Real>
     seconds = dur.count();
   }
 
-  accuracy = compute_accuracy(n_asteroids,
-                              x, y, z, u, v, w,
-                              x_final, y_final, z_final,
-                              u_final, v_final, w_final);
+  error = compute_error(n_asteroids,
+                        x, y, z, u, v, w,
+                        x_final, y_final, z_final,
+                        u_final, v_final, w_final);
 
   // clean up
   delete [] w_final;
@@ -207,11 +207,11 @@ int main(int argc, char **argv)
   std::string precision;
   parse_args(argc, argv, n_asteroids, n_steps, precision);
 
-  double seconds, accuracy;
+  double seconds, error;
   if (precision == "double") {
-    simulate<double>(n_asteroids, n_steps, seconds, accuracy);
+    simulate<double>(n_asteroids, n_steps, seconds, error);
   } else {
-    simulate<float>(n_asteroids, n_steps, seconds, accuracy);
+    simulate<float>(n_asteroids, n_steps, seconds, error);
   }
 
   std::cout << "{" << std::endl;
@@ -219,7 +219,9 @@ int main(int argc, char **argv)
   std::cout << "  \"n_asteroids\" : \"" << n_asteroids << "\"," << std::endl;
   std::cout << "  \"n_steps\" : \"" << n_steps << "\"," << std::endl;
   std::cout << "  \"runtime (seconds)\" : \"" << seconds << "\"," << std::endl;
-  std::cout << "  \"accuracy\" : \"" << accuracy << "\"" << std::endl;
+  std::cout << "  \"asteroid time steps per second\" : \"" << (double) n_steps * (double) n_asteroids / seconds << "\"," << std::endl;
+  std::cout << "  \"simulated years per second\" : \"" << 1.0 / seconds << "\"," << std::endl;
+  std::cout << "  \"error\" : \"" << error << "\"" << std::endl;
   std::cout << "}" << std::endl;
 
   return 0;
