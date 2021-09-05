@@ -159,7 +159,7 @@ Your second figure will show what the trade-offs between speed and accuracy are.
 Make a submission script `figure_two.pbs` that runs `float` and `double` simulations for all 585,962 using **24 OpenMP threads** for differing number of time steps.  You should make sure:
 
 - You include a small enough number of time steps that both precisions' simulations have an `error` > 1.
-- You include a large enough number of time steps that `error` of both precisions stops decreasing.
+- You include a large enough number of time steps that `error` of both precisions stops decreasing, or the runtime of your simulation reaches 10 minutes.
 - You test a wide range of time steps in between (at least 10)
 
 Use the plotting software of your choice to create a chart of your data.  Here is an example from running the serial code (the format of this reference is acceptable, but it does not test a wide enough range of values).  Each data point is labeled by its number of time steps.
