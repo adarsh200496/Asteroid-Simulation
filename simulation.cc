@@ -7,6 +7,7 @@
 #include "state.h"
 #include "parse.h"
 #include "timestep.h"
+#include <omp.h>
 
 /// Convert elements to state vector arrays
 template<typename Real>
@@ -20,24 +21,30 @@ template<typename Real>
 {
   using namespace elements;
   size_t n_asteroids_true = elems.size() / NUM_EL;
-  for (size_t i = 0; i < n_asteroids; i++) {
-    // if more asteroids are requested than are in the file, duplicate some
-    double *elem = &elems[NUM_EL * (i % n_asteroids_true)];
-    double statev[NUM_EL];
-    Real statev_r[NUM_EL];
+  size_t i;
 
-    // Compute the state vectors in double precision
-    elements_to_state_vector<double>(mu, time, elem, statev);
+  #pragma omp parallel shared (n_asteroids, mu, time, elems, x, y, z, u, v, w, n_asteroids_true) private (i)
+  {
+    #pragma omp for
+    for (i = 0; i < n_asteroids; i++) {
+      // if more asteroids are requested than are in the file, duplicate some
+      double *elem = &elems[NUM_EL * (i % n_asteroids_true)];
+      double statev[NUM_EL];
+      Real statev_r[NUM_EL];
 
-    // Convert double precision to the requested precision
-    for (size_t j = 0; j < NUM_EL; j++) {
-      statev_r[j] = (Real) statev[j];
+      // Compute the state vectors in double precision
+      elements_to_state_vector<double>(mu, time, elem, statev);
+
+      // Convert double precision to the requested precision
+      for (size_t j = 0; j < NUM_EL; j++) {
+        statev_r[j] = (Real) statev[j];
+      }
+
+      // copy into the arrays
+      state::unpack(statev_r,
+                    x[i], y[i], z[i],
+                    u[i], v[i], w[i]);
     }
-
-    // copy into the arrays
-    state::unpack(statev_r,
-                  x[i], y[i], z[i],
-                  u[i], v[i], w[i]);
   }
 }
 
@@ -63,25 +70,31 @@ template<typename Real>
                               double *__restrict__ w_true)
 {
   double error = 0.;
-  // The error is the largest square error between the computed final state
-  // and the true final state
-  for (size_t i = 0; i < n_asteroids; i++) {
-    double err_x = (double) x[i] - x_true[i];
-    double err_y = (double) y[i] - y_true[i];
-    double err_z = (double) z[i] - z_true[i];
-    double err_u = (double) u[i] - u_true[i];
-    double err_v = (double) v[i] - v_true[i];
-    double err_w = (double) w[i] - w_true[i];
-    double diff = std::sqrt
-                  (
-                    err_x*err_x +
-                    err_y*err_y +
-                    err_z*err_z +
-                    err_u*err_u +
-                    err_v*err_v +
-                    err_w*err_w
-                  );
-    error = std::max(error,diff);
+  size_t i;
+
+  #pragma omp parallel shared (n_asteroids, x, x_true, y, y_true, z, z_true, u, u_true, v, v_true, w, w_true) private (i) reduction (std::max:error)
+  {
+    // The error is the largest square error between the computed final state
+    // and the true final state
+    #pragma omp for
+    for (i = 0; i < n_asteroids; i++) {
+      double err_x = (double) x[i] - x_true[i];
+      double err_y = (double) y[i] - y_true[i];
+      double err_z = (double) z[i] - z_true[i];
+      double err_u = (double) u[i] - u_true[i];
+      double err_v = (double) v[i] - v_true[i];
+      double err_w = (double) w[i] - w_true[i];
+      double diff = std::sqrt
+                    (
+                      err_x*err_x +
+                      err_y*err_y +
+                      err_z*err_z +
+                      err_u*err_u +
+                      err_v*err_v +
+                      err_w*err_w
+                    );
+      error = std::max(error,diff);
+    }
   }
   return error;
 }

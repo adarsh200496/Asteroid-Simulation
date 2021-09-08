@@ -15,7 +15,9 @@ namespace timestep {
                   Real *__restrict__ v,
                   Real *__restrict__ w)
     {
-      for (size_t i = 0; i < n_asteroids; i++) {
+      size_t i;
+      #pragma omp parallel for shared(n_asteroids, mu, dt, x, y, z, u, v, w) private(i)
+      for (i = 0; i < n_asteroids; i++) {
         Real r2 = x[i]*x[i] + y[i]*y[i] + z[i]*z[i];
         Real r = std::sqrt(r2);
         Real factor = (-mu * dt) / (r2 * r);
@@ -40,7 +42,9 @@ namespace timestep {
                            Real *__restrict__ v,
                            Real *__restrict__ w)
     {
-      for (size_t i = 0; i < n_asteroids; i++) {
+      size_t i;
+      #pragma omp parallel for shared (n_asteroids, dt, x, y, z, u, v, w) private(i)
+      for (i = 0; i < n_asteroids; i++) {
         x[i] += dt * u[i];
         y[i] += dt * v[i];
         z[i] += dt * w[i];
